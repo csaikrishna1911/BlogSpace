@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BlogSpace – Share Your Story</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap');
+
+  :root {
+    --ink: #0f0f0f;
+    --paper: #fafaf8;
+    --accent: #2d6a4f;
+    --accent-light: #d8f3dc;
+    --accent-muted: #52b788;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --card: #ffffff;
+    --danger: #dc2626;
+    --warn: #d97706;
+    --radius: 10px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;
+    height: 60px; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 900; color: var(--accent); letter-spacing: -0.5px; }
+  .nav-actions { display: flex; gap: 0.75rem; align-items: center; }
+  .nav-user { font-size: 0.85rem; color: var(--muted); }
+
+  /* ── BUTTONS ── */
+  button { cursor: pointer; border: none; font-family: inherit; transition: all 0.15s; }
+  .btn { padding: 0.5rem 1.1rem; border-radius: 7px; font-size: 0.875rem; font-weight: 600; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #235c40; }
+  .btn-ghost { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+  .btn-ghost:hover { background: var(--accent-light); }
+  .btn-danger { background: transparent; color: var(--danger); border: 1.5px solid var(--danger); }
+  .btn-danger:hover { background: #fee2e2; }
+  .btn-sm { padding: 0.35rem 0.8rem; font-size: 0.78rem; }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── AUTH ── */
+  .auth-wrap {
+    min-height: calc(100vh - 60px); display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  }
+  .auth-card {
+    background: var(--card); border-radius: 16px; padding: 2.5rem 2.2rem;
+    width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+    border: 1px solid var(--border);
+  }
+  .auth-card h2 { font-family: 'Playfair Display', serif; font-size: 1.75rem; margin-bottom: 0.25rem; }
+  .auth-card p { color: var(--muted); font-size: 0.875rem; margin-bottom: 1.5rem; }
+  .form-group { margin-bottom: 1rem; }
+  label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 0.35rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  input, textarea, select {
+    width: 100%; padding: 0.6rem 0.85rem; border: 1.5px solid var(--border);
+    border-radius: 7px; font-family: inherit; font-size: 0.9rem; background: var(--paper);
+    transition: border 0.15s;
+  }
+  input:focus, textarea:focus { outline: none; border-color: var(--accent-muted); }
+  textarea { resize: vertical; min-height: 120px; }
+  .auth-switch { margin-top: 1.2rem; text-align: center; font-size: 0.85rem; color: var(--muted); }
+  .auth-switch a { color: var(--accent); cursor: pointer; font-weight: 600; text-decoration: none; }
+  .auth-switch a:hover { text-decoration: underline; }
+  .error-msg { background: #fee2e2; color: var(--danger); padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.82rem; margin-bottom: 1rem; display: none; }
+  .success-msg { background: var(--accent-light); color: var(--accent); padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.82rem; margin-bottom: 1rem; display: none; }
+
+  /* ── FEED ── */
+  .feed-wrap { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .feed-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem; }
+  .feed-header h1 { font-family: 'Playfair Display', serif; font-size: 2rem; }
+  .feed-header span { color: var(--muted); font-size: 0.875rem; margin-top: 0.2rem; display: block; }
+
+  .post-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: var(--shadow);
+    transition: box-shadow 0.15s;
+  }
+  .post-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.11); }
+  .post-meta { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 0.8rem; color: var(--muted); }
+  .post-meta .author-badge { background: var(--accent-light); color: var(--accent); padding: 0.15rem 0.55rem; border-radius: 20px; font-weight: 600; font-size: 0.75rem; }
+  .post-title { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 700; margin-bottom: 0.5rem; cursor: pointer; color: var(--ink); }
+  .post-title:hover { color: var(--accent); }
+  .post-excerpt { color: var(--muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1rem; }
+  .post-footer { display: flex; align-items: center; justify-content: space-between; }
+  .post-actions { display: flex; gap: 0.5rem; }
+  .comment-count { font-size: 0.8rem; color: var(--muted); display: flex; align-items: center; gap: 0.3rem; }
+
+  .empty-state { text-align: center; padding: 4rem 1rem; color: var(--muted); }
+  .empty-state svg { opacity: 0.3; margin-bottom: 1rem; }
+  .empty-state p { font-size: 1rem; }
+
+  /* ── MODAL ── */
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center; z-index: 200; padding: 1rem;
+    display: none;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--card); border-radius: 14px; padding: 2rem; width: 100%;
+    max-width: 560px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto;
+  }
+  .modal h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 1.25rem; }
+  .modal-footer { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; }
+
+  /* ── POST DETAIL ── */
+  .detail-wrap { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .detail-back { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--accent); font-weight: 600; font-size: 0.875rem; cursor: pointer; margin-bottom: 1.5rem; border: none; background: none; }
+  .detail-back:hover { text-decoration: underline; }
+  .detail-title { font-family: 'Playfair Display', serif; font-size: 2.2rem; line-height: 1.25; margin-bottom: 0.75rem; }
+  .detail-meta { color: var(--muted); font-size: 0.85rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  .detail-body { font-size: 1rem; line-height: 1.75; color: #374151; white-space: pre-wrap; margin-bottom: 2.5rem; }
+  .detail-actions { display: flex; gap: 0.75rem; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+
+  /* ── COMMENTS ── */
+  .comments-section h4 { font-family: 'Playfair Display', serif; font-size: 1.25rem; margin-bottom: 1.25rem; }
+  .comment-form { background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; margin-bottom: 1.5rem; }
+  .comment-form textarea { min-height: 80px; margin-bottom: 0.75rem; }
+  .comment-item {
+    border-left: 3px solid var(--accent-light); padding: 0.85rem 1rem;
+    margin-bottom: 0.85rem; background: var(--card); border-radius: 0 var(--radius) var(--radius) 0;
+    box-shadow: var(--shadow);
+  }
+  .comment-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; font-size: 0.8rem; color: var(--muted); }
+  .comment-header .author-badge { background: var(--accent-light); color: var(--accent); padding: 0.1rem 0.45rem; border-radius: 20px; font-weight: 600; font-size: 0.72rem; }
+  .comment-text { font-size: 0.9rem; line-height: 1.6; color: #374151; }
+  .comment-del { margin-left: auto; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.75rem; padding: 0.1rem 0.4rem; border-radius: 4px; }
+  .comment-del:hover { color: var(--danger); background: #fee2e2; }
+
+  .tag { background: var(--accent-light); color: var(--accent); padding: 0.18rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--ink); color: #fff;
+    padding: 0.75rem 1.25rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500;
+    z-index: 300; transform: translateY(100px); opacity: 0; transition: all 0.3s;
+    max-width: 300px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { background: var(--accent); }
+  .toast.error { background: var(--danger); }
+
+  @media (max-width: 600px) {
+    nav { padding: 0 1rem; }
+    .feed-wrap, .detail-wrap { padding: 1.25rem 1rem; }
+    .detail-title { font-size: 1.6rem; }
+    .modal { padding: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo" onclick="showFeed()">BlogSpace</div>
+  <div class="nav-actions" id="navActions">
+    <button class="btn btn-ghost btn-sm" onclick="showAuth('login')">Log in</button>
+    <button class="btn btn-primary btn-sm" onclick="showAuth('register')">Sign up</button>
+  </div>
+</nav>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== AUTH PAGE ===== -->
+<div class="page active" id="authPage">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h2 id="authTitle">Welcome back</h2>
+      <p id="authSub">Log in to read and share stories.</p>
+      <div class="error-msg" id="authError"></div>
+      <div class="success-msg" id="authSuccess"></div>
+
+      <div class="form-group" id="nameGroup" style="display:none">
+        <label>Full Name</label>
+        <input type="text" id="authName" placeholder="Jane Doe">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="authEmail" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="authPassword" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:0.7rem" id="authSubmitBtn" onclick="handleAuth()">Log in</button>
+      <div class="auth-switch" id="authSwitch">
+        No account? <a onclick="toggleAuth()">Sign up free</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FEED PAGE ===== -->
+<div class="page" id="feedPage">
+  <div class="feed-wrap">
+    <div class="feed-header">
+      <div>
+        <h1>Latest Stories</h1>
+        <span id="postCount">0 posts published</span>
+      </div>
+      <button class="btn btn-primary" onclick="openNewPost()">+ New Post</button>
+    </div>
+    <div id="postList"></div>
+  </div>
+</div>
+
+<!-- ===== POST DETAIL PAGE ===== -->
+<div class="page" id="detailPage">
+  <div class="detail-wrap">
+    <button class="detail-back" onclick="showFeed()">← Back to Feed</button>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<!-- ===== POST MODAL ===== -->
+<div class="modal-bg" id="postModal">
+  <div class="modal">
+    <h3 id="modalTitle">New Post</h3>
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="postTitleInput" placeholder="An interesting title...">
+    </div>
+    <div class="form-group">
+      <label>Content</label>
+      <textarea id="postBodyInput" placeholder="Write your story here..." style="min-height:180px"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Tag (optional)</label>
+      <select id="postTagInput">
+        <option value="">— none —</option>
+        <option value="Technology">Technology</option>
+        <option value="Design">Design</option>
+        <option value="Life">Life</option>
+        <option value="Travel">Travel</option>
+        <option value="Finance">Finance</option>
+        <option value="Health">Health</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="error-msg" id="postError"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="savePost()">Publish</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DELETE CONFIRM MODAL ===== -->
+<div class="modal-bg" id="deleteModal">
+  <div class="modal" style="max-width:380px">
+    <h3>Delete Post?</h3>
+    <p style="color:var(--muted);font-size:0.9rem;margin:0.5rem 0 1.5rem">This will permanently remove the post and all its comments.</p>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────── DATABASE (localStorage) ───────────
+const DB = {
+  get: (k) => JSON.parse(localStorage.getItem(k) || 'null'),
+  set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
+};
+
+function getUsers() { return DB.get('bs_users') || {}; }
+function getPosts() { return DB.get('bs_posts') || []; }
+function getComments() { return DB.get('bs_comments') || []; }
+function saveUsers(u) { DB.set('bs_users', u); }
+function savePosts(p) { DB.set('bs_posts', p); }
+function saveComments(c) { DB.set('bs_comments', c); }
+function getCurrentUser() { return DB.get('bs_session'); }
+function setCurrentUser(u) { DB.set('bs_session', u); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function formatDate(ts) { return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+
+// ─────────── AUTH ───────────
+let authMode = 'login';
+
+function showAuth(mode) {
+  authMode = mode || 'login';
+  document.getElementById('authTitle').textContent = authMode === 'login' ? 'Welcome back' : 'Create account';
+  document.getElementById('authSub').textContent = authMode === 'login' ? 'Log in to read and share stories.' : 'Join BlogSpace and start writing.';
+  document.getElementById('authSubmitBtn').textContent = authMode === 'login' ? 'Log in' : 'Create account';
+  document.getElementById('nameGroup').style.display = authMode === 'register' ? 'block' : 'none';
+  document.getElementById('authSwitch').innerHTML = authMode === 'login'
+    ? 'No account? <a onclick="toggleAuth()">Sign up free</a>'
+    : 'Already have one? <a onclick="toggleAuth()">Log in</a>';
+  clearAuthMsgs();
+  showPage('authPage');
+}
+
+function toggleAuth() { showAuth(authMode === 'login' ? 'register' : 'login'); }
+
+function handleAuth() {
+  clearAuthMsgs();
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const name = document.getElementById('authName').value.trim();
+  if (!email || !password) return showAuthError('Please fill in all fields.');
+  if (!/\S+@\S+\.\S+/.test(email)) return showAuthError('Enter a valid email address.');
+
+  const users = getUsers();
+
+  if (authMode === 'register') {
+    if (!name) return showAuthError('Please enter your name.');
+    if (password.length < 6) return showAuthError('Password must be at least 6 characters.');
+    if (users[email]) return showAuthError('An account with this email already exists.');
+    users[email] = { id: uid(), name, email, password, joinedAt: Date.now() };
+    saveUsers(users);
+    setCurrentUser({ id: users[email].id, name, email });
+    toast('Account created! Welcome, ' + name + ' 👋', 'success');
+    afterLogin();
+  } else {
+    const u = users[email];
+    if (!u || u.password !== password) return showAuthError('Incorrect email or password.');
+    setCurrentUser({ id: u.id, name: u.name, email: u.email });
+    toast('Welcome back, ' + u.name + '!', 'success');
+    afterLogin();
+  }
+}
+
+function afterLogin() { updateNav(); showFeed(); }
+
+function logout() {
+  setCurrentUser(null);
+  updateNav();
+  showAuth('login');
+  toast('You\'ve been logged out.');
+}
+
+function updateNav() {
+  const u = getCurrentUser();
+  const el = document.getElementById('navActions');
+  if (u) {
+    el.innerHTML = `<span class="nav-user">👤 ${u.name}</span>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Log out</button>`;
+  } else {
+    el.innerHTML = `<button class="btn btn-ghost btn-sm" onclick="showAuth('login')">Log in</button>
+      <button class="btn btn-primary btn-sm" onclick="showAuth('register')">Sign up</button>`;
+  }
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg; el.style.display = 'block';
+}
+function clearAuthMsgs() {
+  document.getElementById('authError').style.display = 'none';
+  document.getElementById('authSuccess').style.display = 'none';
+}
+
+// ─────────── PAGES ───────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function showFeed() {
+  if (!getCurrentUser()) return showAuth('login');
+  renderFeed();
+  showPage('feedPage');
+}
+
+// ─────────── POSTS ───────────
+let editingPostId = null;
+let deletingPostId = null;
+
+function openNewPost() {
+  editingPostId = null;
+  document.getElementById('modalTitle').textContent = 'New Post';
+  document.getElementById('postTitleInput').value = '';
+  document.getElementById('postBodyInput').value = '';
+  document.getElementById('postTagInput').value = '';
+  document.getElementById('postError').style.display = 'none';
+  document.getElementById('postModal').classList.add('open');
+}
+
+function openEditPost(id) {
+  const post = getPosts().find(p => p.id === id);
+  if (!post) return;
+  editingPostId = id;
+  document.getElementById('modalTitle').textContent = 'Edit Post';
+  document.getElementById('postTitleInput').value = post.title;
+  document.getElementById('postBodyInput').value = post.body;
+  document.getElementById('postTagInput').value = post.tag || '';
+  document.getElementById('postError').style.display = 'none';
+  document.getElementById('postModal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('postModal').classList.remove('open'); }
+
+function savePost() {
+  const title = document.getElementById('postTitleInput').value.trim();
+  const body = document.getElementById('postBodyInput').value.trim();
+  const tag = document.getElementById('postTagInput').value;
+  const err = document.getElementById('postError');
+  if (!title) { err.textContent = 'Please add a title.'; err.style.display = 'block'; return; }
+  if (!body) { err.textContent = 'Please write some content.'; err.style.display = 'block'; return; }
+
+  const posts = getPosts();
+  const u = getCurrentUser();
+
+  if (editingPostId) {
+    const idx = posts.findIndex(p => p.id === editingPostId);
+    if (idx !== -1) {
+      posts[idx] = { ...posts[idx], title, body, tag, updatedAt: Date.now() };
+      savePosts(posts);
+      toast('Post updated.', 'success');
+      closeModal();
+      renderFeed();
+      // refresh detail if open
+      if (document.getElementById('detailPage').classList.contains('active')) {
+        showDetail(editingPostId);
+      }
+    }
+  } else {
+    const post = { id: uid(), title, body, tag, authorId: u.id, authorName: u.name, createdAt: Date.now() };
+    posts.unshift(post);
+    savePosts(posts);
+    toast('Post published!', 'success');
+    closeModal();
+    renderFeed();
+  }
+}
+
+function openDeleteModal(id) {
+  deletingPostId = id;
+  document.getElementById('deleteModal').classList.add('open');
+}
+function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('open'); deletingPostId = null; }
+
+function confirmDelete() {
+  if (!deletingPostId) return;
+  const posts = getPosts().filter(p => p.id !== deletingPostId);
+  savePosts(posts);
+  const comments = getComments().filter(c => c.postId !== deletingPostId);
+  saveComments(comments);
+  closeDeleteModal();
+  toast('Post deleted.', 'error');
+  if (document.getElementById('detailPage').classList.contains('active')) showFeed();
+  else renderFeed();
+}
+
+function renderFeed() {
+  const posts = getPosts();
+  const u = getCurrentUser();
+  const comments = getComments();
+  const el = document.getElementById('postList');
+  document.getElementById('postCount').textContent = posts.length + ' post' + (posts.length !== 1 ? 's' : '') + ' published';
+
+  if (posts.length === 0) {
+    el.innerHTML = `<div class="empty-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      <p>No posts yet — be the first to write something!</p>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = posts.map(p => {
+    const cnt = comments.filter(c => c.postId === p.id).length;
+    const excerpt = p.body.length > 180 ? p.body.slice(0, 180) + '…' : p.body;
+    const owned = u && u.id === p.authorId;
+    return `<div class="post-card">
+      <div class="post-meta">
+        <span class="author-badge">${p.authorName}</span>
+        <span>·</span><span>${formatDate(p.createdAt)}</span>
+        ${p.tag ? `<span class="tag">${p.tag}</span>` : ''}
+        ${p.updatedAt ? '<span style="font-style:italic;font-size:0.75rem">edited</span>' : ''}
+      </div>
+      <div class="post-title" onclick="showDetail('${p.id}')">${escHtml(p.title)}</div>
+      <div class="post-excerpt">${escHtml(excerpt)}</div>
+      <div class="post-footer">
+        <div class="post-actions">
+          <button class="btn btn-ghost btn-sm" onclick="showDetail('${p.id}')">Read more</button>
+          ${owned ? `<button class="btn btn-ghost btn-sm" onclick="openEditPost('${p.id}')">Edit</button>` : ''}
+          ${owned ? `<button class="btn btn-danger btn-sm" onclick="openDeleteModal('${p.id}')">Delete</button>` : ''}
+        </div>
+        <span class="comment-count">💬 ${cnt}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─────────── DETAIL & COMMENTS ───────────
+function showDetail(postId) {
+  if (!getCurrentUser()) return showAuth('login');
+  const post = getPosts().find(p => p.id === postId);
+  if (!post) return showFeed();
+  const u = getCurrentUser();
+  const comments = getComments().filter(c => c.postId === postId);
+  const owned = u && u.id === post.authorId;
+
+  const commentsHtml = comments.length === 0
+    ? '<p style="color:var(--muted);font-size:0.875rem;padding:0.5rem 0">No comments yet. Be the first!</p>'
+    : comments.map(c => {
+        const mine = u && u.id === c.authorId;
+        return `<div class="comment-item">
+          <div class="comment-header">
+            <span class="author-badge">${c.authorName}</span>
+            <span>· ${formatDate(c.createdAt)}</span>
+            ${mine ? `<button class="comment-del" onclick="deleteComment('${c.id}','${postId}')">✕ remove</button>` : ''}
+          </div>
+          <div class="comment-text">${escHtml(c.text)}</div>
+        </div>`;
+      }).join('');
+
+  document.getElementById('detailContent').innerHTML = `
+    <div class="detail-title">${escHtml(post.title)}</div>
+    <div class="detail-meta">
+      <span class="author-badge" style="background:var(--accent-light);color:var(--accent);padding:0.2rem 0.6rem;border-radius:20px;font-weight:600;font-size:0.8rem">${post.authorName}</span>
+      <span>${formatDate(post.createdAt)}</span>
+      ${post.tag ? `<span class="tag">${post.tag}</span>` : ''}
+    </div>
+    <div class="detail-body">${escHtml(post.body)}</div>
+    ${owned ? `<div class="detail-actions">
+      <button class="btn btn-ghost btn-sm" onclick="openEditPost('${post.id}')">✏️ Edit Post</button>
+      <button class="btn btn-danger btn-sm" onclick="openDeleteModal('${post.id}')">🗑 Delete Post</button>
+    </div>` : ''}
+    <div class="comments-section">
+      <h4>Comments (${comments.length})</h4>
+      <div class="comment-form">
+        <div class="form-group" style="margin-bottom:0.6rem">
+          <textarea id="commentInput" placeholder="Share your thoughts…"></textarea>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="addComment('${post.id}')">Post Comment</button>
+      </div>
+      <div id="commentList">${commentsHtml}</div>
+    </div>`;
+
+  showPage('detailPage');
+}
+
+function addComment(postId) {
+  const text = document.getElementById('commentInput').value.trim();
+  if (!text) { toast('Write something before posting.', 'error'); return; }
+  const u = getCurrentUser();
+  const comment = { id: uid(), postId, text, authorId: u.id, authorName: u.name, createdAt: Date.now() };
+  const comments = getComments();
+  comments.push(comment);
+  saveComments(comments);
+  toast('Comment posted!', 'success');
+  showDetail(postId);
+}
+
+function deleteComment(commentId, postId) {
+  const comments = getComments().filter(c => c.id !== commentId);
+  saveComments(comments);
+  toast('Comment removed.');
+  showDetail(postId);
+}
+
+// ─────────── UTILITIES ───────────
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// Close modals on backdrop click
+document.getElementById('postModal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+document.getElementById('deleteModal').addEventListener('click', function(e) { if (e.target === this) closeDeleteModal(); });
+
+// Enter key on auth
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.getElementById('authPage').classList.contains('active')) handleAuth();
+});
+
+// ─────────── INIT ───────────
+(function init() {
+  updateNav();
+  const u = getCurrentUser();
+  if (u) {
+    showFeed();
+  } else {
+    showAuth('login');
+  }
+})();
+</script>
+</body>
+</html>
